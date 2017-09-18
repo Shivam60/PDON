@@ -1,5 +1,5 @@
 try:
-	import os,sys,socket
+	import os,sys,socket,subprocess,zipfile
 except Exception as e:
 	print(e)
 	sys.exit(1)
@@ -24,7 +24,11 @@ class client():
             os._exit(0)
     def recvone(self):
         return self.sock.recv(65656)
-
+def decompress(zippedfile):
+    subprocess.call("mkdir input".split())
+    zap=zipfile.ZipFile(zippedfile)
+    for files in zap.namelist():
+        zap.extract(files,os.getcwd()+"/input")
 if __name__=="__main__":
     port=9998
     ip='localhost'

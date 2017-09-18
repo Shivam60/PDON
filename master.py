@@ -1,11 +1,34 @@
 try:
-	import os,sys,scapy,socket,threading
+	import os,sys,scapy,socket,threading,compress
 	from scapy.all import*
 except Exception as e:
 	print(e)
 	sys.exit(1)
 finally:
     print("Imports Complete")
+#process folder to make pair of data and code to be sent to slave
+def processfolder(code='code.py',path=os.getcwd(),nodes=2):
+	subprocess.run("mkdir node_file".split())
+	d=os.listdir(path)
+	t=os.getcwd()
+	d.remove(code)
+	lst=[d[i::nodes] for i in range(nodes)]
+	[i.append(code) for i in lst]	
+	print("Dividing into %d compress files. "%len(lst))
+	os.chdir(path)
+	for i in range(0,len(lst)):
+		compress(lst[i],name="node_"+str(i+1))
+		subprocess.run(("mv node_"+str(i+1)+" "+t+'/node_files').split())
+		print("node_"+str(i+1)+".zip written")
+#compress a particular file or a list of files
+def compress(lst,name):
+	file = zipfile.ZipFile(name, "w")
+	if type(lst)==list:
+		for i in lst:
+			file.write(i,os.path.basename(i),zipfile.ZIP_DEFLATED)
+	else:
+		file.write(lst,os.path.basename(lst),zipfile.ZIP_DEFLATED)
+	file.close()
 
 def scannodes(interface='wlps20'):
 	nf=True
