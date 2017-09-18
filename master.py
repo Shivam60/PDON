@@ -1,5 +1,5 @@
 try:
-	import os,sys,scapy,socket,threading,compress
+	import os,sys,socket,threading,zipfile
 	from scapy.all import*
 except Exception as e:
 	print(e)
@@ -51,43 +51,40 @@ class ThreadedServer(object):
 	def __init__(self, host, port,nodes):
 		self.host = host
 		self.port = port
-		self.limit=len(nodes)
-		self.nodes=nodes
-#		try:
-		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		self.sock.bind((self.host, self.port))
-#		except Exception as e:
-#			print(e)
+		self.limit=nodes
+		self.nodes={}
+		try:
+			self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+			self.sock.bind((self.host, self.port))
+		except Exception as e:
+			print(e)
 			
 	def listen(self):
 		self.sock.listen(self.limit)
-		while True:
+		while len(self.nodes[address[0]]) != self.limit:
 			client, address = self.sock.accept()
-			if str(address[0]) in self.nodes:
-				client.settimeout(60)
-				threading.Thread(target = self.listenToClient,args = (client,address)).start()
-			else:
-				print("Warning! Connection recieved by Unauthorised node. "+str(address))
-				client.close()
+			threading.Thread(target = self.listenToClient,args = (client,address)).start()
+			self.nodes[address[0]]=''
+			processfolder()
 	def listenToClient(self, client, address):
-		size = 1024
+		size = 102400
 		while True:			
 			try:
-				data = client.recv(size).decode('utf-8')
-				print(address,data)
+				data = self.meaning(client.recv(size).decode('utf-8'))
 				if data!='close':
-					response = self.toupper(data)
-					client.send(response)
+					print(address)
+					client.send(self.toupper(data).encode('utf-8'))
 				else:
 					client.close()
+					return
 			except:
 				client.close()
 				return False
-	def toupper(self,msg):
+	def meaning(self,msg):
 		return msg.upper()
 if __name__ == "__main__":
 	ip='localhost'
 	port=9998
-	d={'127.0.0.1':"asd"}
+	d=1
 	ThreadedServer('',port,d).listen()
