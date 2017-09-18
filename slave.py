@@ -7,23 +7,28 @@ finally:
     print("Imports Complete")
 
 class client():
-    def __init__(self,port,ip):
+    def __init__(self,port,ip,secret):
         self.port=port
         self.host=ip
+        self.secret=secret
         try:
             self.sock=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.connect((ip,port))
         except Exception as e:
             print(e)
             os._exit(0)
+        finally:
+            print("Slave is now Running")
     def sendmsg(self,msg):
         try:
             self.sock.sendall(msg.encode('utf-8'))
         except Exception as e:
             print(e)
             os._exit(0)
-    def recvone(self):
-        return self.sock.recv(65656)
+    def recvmsg(self):
+        return self.sock.recv(65656).decode('utf-8')
+    def start(self):
+        pass
 def decompress(zippedfile):
     subprocess.call("mkdir input".split())
     zap=zipfile.ZipFile(zippedfile)
@@ -32,12 +37,16 @@ def decompress(zippedfile):
 if __name__=="__main__":
     port=9998
     ip='localhost'
-    c=client(port,ip)
-    while True:
-        p=input("Enter Message to send: ")
-        if p!='close':
-            c.sendmsg(p)
-            print("Reply From server: "+c.recvone().decode('utf-8'))
-        else:
-            c.sendmsg('close')
-            c.sock.close()
+    secret='shivam'
+    c=client(port,ip,secret)
+    c.sendmsg(c.secret)
+    if c.recvmsg()=='Authenitcated':
+        print("Master has authenticated the slave")
+        while True:
+            p=input("Enter Message to send: ")
+            if p!='close':
+                c.sendmsg(p)
+                print("Reply From server: "+c.recvmsg())
+            else:
+                c.sendmsg('close')
+            

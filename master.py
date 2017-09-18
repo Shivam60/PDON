@@ -1,6 +1,5 @@
 try:
 	import os,sys,socket,threading,zipfile
-	from scapy.all import*
 except Exception as e:
 	print(e)
 	sys.exit(1)
@@ -48,43 +47,44 @@ def scannodes(interface='wlps20'):
 		return -1
 
 class ThreadedServer(object):
-	def __init__(self, host, port,nodes):
+	def __init__(self, host, port,nodes,secret):
 		self.host = host
 		self.port = port
 		self.limit=nodes
 		self.nodes={}
+		self.secret=secret
 		try:
 			self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 			self.sock.bind((self.host, self.port))
 		except Exception as e:
-			print(e)
-			
+			print(e)	
+		finally:
+			print("Master is now running.")	
 	def listen(self):
 		self.sock.listen(self.limit)
-		while len(self.nodes[address[0]]) != self.limit:
+		while len(self.nodes) != self.limit:
 			client, address = self.sock.accept()
 			threading.Thread(target = self.listenToClient,args = (client,address)).start()
 			self.nodes[address[0]]=''
-			processfolder()
+		#processfolder()
 	def listenToClient(self, client, address):
 		size = 102400
-		while True:			
-			try:
-				data = self.meaning(client.recv(size).decode('utf-8'))
-				if data!='close':
-					print(address)
-					client.send(self.toupper(data).encode('utf-8'))
-				else:
-					client.close()
-					return
-			except:
-				client.close()
-				return False
-	def meaning(self,msg):
-		return msg.upper()
+		try:
+			data = client.recv(size).decode('utf-8')
+			if data==self.secret:
+				print("Slave Authenitcated")
+				client.sendall("Authenitcated".encode('utf-8'))
+				while True:
+					data = client.recv(size).decode('utf-8')
+					print(data)
+					client.sendall(data.upper().encode('utf-8'))
+		except:
+			client.close()
+			return False
 if __name__ == "__main__":
 	ip='localhost'
 	port=9998
 	d=1
-	ThreadedServer('',port,d).listen()
+	secret='shivam'	
+	ThreadedServer('',port,d,secret).listen()
