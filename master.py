@@ -78,6 +78,10 @@ class ThreadedServer(object):
 				while True:
 					data = client.recv(size).decode('utf-8')
 					print(data)
+					if data=='close':
+						client.close()
+						print('Connection closed')
+						thread.exit()
 					client.sendall(data.upper().encode('utf-8'))
 		except:
 			client.close()

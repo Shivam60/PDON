@@ -28,7 +28,18 @@ class client():
     def recvmsg(self):
         return self.sock.recv(65656).decode('utf-8')
     def start(self):
-        pass
+        self.sendmsg(self.secret)
+        if self.recvmsg()=='Authenitcated':
+            print("Master has authenticated the slave")
+            while True:
+                p=input("Enter Message to send: ")
+                self.sendmsg(p)
+                if p=="close":
+                    self.sock.close
+                    print("Connection closed")
+                    os._exit(0)
+                print("Reply From server: "+self.recvmsg())
+            
 def decompress(zippedfile):
     subprocess.call("mkdir input".split())
     zap=zipfile.ZipFile(zippedfile)
@@ -38,15 +49,5 @@ if __name__=="__main__":
     port=9998
     ip='localhost'
     secret='shivam'
-    c=client(port,ip,secret)
-    c.sendmsg(c.secret)
-    if c.recvmsg()=='Authenitcated':
-        print("Master has authenticated the slave")
-        while True:
-            p=input("Enter Message to send: ")
-            if p!='close':
-                c.sendmsg(p)
-                print("Reply From server: "+c.recvmsg())
-            else:
-                c.sendmsg('close')
-            
+    client(port,ip,secret).start()
+    
