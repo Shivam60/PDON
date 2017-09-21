@@ -1,5 +1,5 @@
 try:
-	import os,sys,socket,subprocess,zipfile
+	import os,sys,socket,subprocess,zipfile,Networking,time
 except Exception as e:
 	print(e)
 	sys.exit(1)
@@ -7,9 +7,10 @@ finally:
     print("Imports Complete")
 
 class client():
-    def __init__(self,port,ip,secret):
+    def __init__(self,port,ip,secret,path):
         self.port=port
         self.host=ip
+        self.path=path
         self.secret=secret
         try:
             self.sock=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -29,17 +30,34 @@ class client():
         return self.sock.recv(65656).decode('utf-8')
     def start(self):
         self.sendmsg(self.secret)
-        if self.recvmsg()=='Authenitcated':
-            print("Master has authenticated the slave")
-            while True:
-                p=input("Enter Message to send: ")
-                self.sendmsg(p)
-                if p=="close":
-                    self.sock.close
-                    print("Connection closed")
-                    os._exit(0)
-                print("Reply From server: "+self.recvmsg())
-            
+        if self.recvmsg()=="Authenitcated":
+            print("Slave Authenitcated")
+            if self.recvmsg()=="READY":
+                self.sendmsg("ACK")
+                print("Setting Recieving Server. ")
+                time.sleep(4)
+                while True:
+                    nf=False
+                    try:
+                        ip,port=self.recvmsg().split()
+                        Networking.server(host=ip,port=int(port),packetsize=65536,filenm='s.mp4',sever_directory=self.path)    
+                    except e as Exception:
+                        print(e)
+                        nf=True
+                        self.sendmsg("ERROR")
+                    finally:
+                        if not nf:
+                            self.sendmsg("ACK")
+                            print("Server Set, Waiting For Data")
+                            break
+                
+                serv.handshake(self.secret)
+                serv.start()
+                serv.end()
+    
+                    
+            else:
+                self.sendmsg("ERROR")          
 def decompress(zippedfile):
     subprocess.call("mkdir input".split())
     zap=zipfile.ZipFile(zippedfile)
@@ -49,5 +67,6 @@ if __name__=="__main__":
     port=9998
     ip='localhost'
     secret='shivam'
-    client(port,ip,secret).start()
+    path='/home/shivam/Work/Projects/test/server'
+    client(port,ip,secret,path).start()
     
