@@ -1,6 +1,5 @@
 try:
 	import os,sys,socket,threading,zipfile,subprocess,random,Networking
-	from Networking import client
 except Exception as e:
 	print(e)
 	sys.exit(1)
@@ -18,7 +17,7 @@ def processfolder(code='code.py',path=os.getcwd(),nodes=2):
 	print("Dividing all data into ' %d ' compress files. "%len(lst))
 	for i in range(0,len(lst)):
 		compress(lst[i],name="node_"+str(i+1))
-		print(subprocess.run(("mv node_"+str(i+1)+" "+path+'/node_files/').split()))	
+		subprocess.run(("mv node_"+str(i+1)+" "+path+'/node_files/').split())
 		print("Compressed Data for node_"+str(i+1)+" written")	
 	os.chdir(t)
 #compress a particular file or a list of files
@@ -31,6 +30,17 @@ def compress(lst,name):
 		file.write(lst,os.path.basename(lst),zipfile.ZIP_DEFLATED)
 	file.close()
 
+def uploader(host,port,filenm,secret,dir):
+	print("Preparing To upload")
+	os.chdir(dir+r'/node_files')
+	try:
+		subprocess.run(("mkdir " + filenm+"_dir").split())
+	except e as Exception:
+		print(e) 
+	subprocess.run(("mv " +filenm+" "+os.getcwd()+r'/'+filenm+"_dir").split())
+	#os.chdir(dir+'/'+filenm)
+	print(host,port,filenm,secret,os.getcwd()+r'/'+filenm+'_dir')
+'''
 def scannodes(interface='wlps20'):
 	nf=True
 	try:
@@ -47,7 +57,7 @@ def scannodes(interface='wlps20'):
 					d[str(answered[i][1].psrc)]=str(answered[i][1].hwsrc)
 			return d
 		return -1
-
+'''
 class ThreadedServer(object):
 	def __init__(self, host, port,nodes,secret,path):
 		self.host = host
@@ -66,17 +76,19 @@ class ThreadedServer(object):
 			self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 			self.sock.bind((self.host, self.port))
+			self.port_used.append(port)		
 		except Exception as e:
 			print(e)	
 		finally:
 			print("Master is now running.")	
 	def listen(self):
 		self.sock.listen(self.limit)
-		threading.Thread(target = processfolder,args = ('code.py',self.path,self.limit)).start()
+		#threading.Thread(target = processfolder,args = ('code.py',self.path,self.limit)).start()
 		while len(self.nodes) != self.limit:
 			client, address = self.sock.accept()
 			threading.Thread(target = self.listenToClient,args = (client,address)).start()
 			self.nodes[address[0]]='node_'+str(len(self.nodes)+1)		
+
 	def listenToClient(self, client, address):
 		size = 102400
 		try:
@@ -91,20 +103,22 @@ class ThreadedServer(object):
 				client.sendall("READY".encode('utf-8'))
 				data = client.recv(size).decode('utf-8')
 				if data=='ACK':
-					while True:
+					nf=True
+					while nf:
 						port=random.randint(999,9999)					
 						while port in self.port_used:
 							port=random.randint(999,9999)
 						print("Communicating Slave %s with connection details"%address[0])					
-						self.port_used.append(port)
 						client.sendall((str(address[0])+' '+str(port)).encode('utf-8'))
 						data = client.recv(size).decode('utf-8')
 						if data=='ACK':
-							print("ACK")
-							break
-					clin=client(host='localhost',port=port,filenm='self.nodes[address[0]]')
-					clin.begin(client_directory=self.path)
-					clin.handshake(self.secret)
+							print("Slave is ready to recieve data")
+							self.port_used.append(port)
+							nf=False
+				else:
+					print("Error: "+data)
+				if data=='ACK':
+					uploader(host=address[0],port=port,filenm=self.nodes[address[0]],secret=self.secret,dir=self.path)
 		except:
 			client.close()
 			return False

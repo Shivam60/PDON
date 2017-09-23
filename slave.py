@@ -35,12 +35,11 @@ class client():
             if self.recvmsg()=="READY":
                 self.sendmsg("ACK")
                 print("Setting Recieving Server. ")
-                time.sleep(4)
                 while True:
                     nf=False
                     try:
                         ip,port=self.recvmsg().split()
-                        Networking.server(host=ip,port=int(port),packetsize=65536,filenm='s.mp4',sever_directory=self.path)    
+                        serv=Networking.server(host=ip,port=int(port),packetsize=65536,filenm='s.mp4',sever_directory=self.path)    
                     except e as Exception:
                         print(e)
                         nf=True
