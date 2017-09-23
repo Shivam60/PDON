@@ -111,13 +111,16 @@ class ThreadedServer(object):
 							print("Slave is ready to recieve data")
 							self.port_used.append(port)
 							nf=False
-				else:
-					print("Error: "+data)
-				if data=='ACK':
 					filenm,dir=uploader(filenm=self.nodes[address[0]],dir=self.path)
-					print(filenm,dir)
 					c=Networking.client(host=address[0],port=port,filenm=filenm,secret=self.secret)
 					c.begin(dir)
+					data = client.recv(size).decode('utf-8')
+					if data=='ACK':
+						print("Slave node %s has recived data sucessfully. "%address[0])
+
+				else:
+					print("Error: "+data)
+
 		except:
 			client.close()
 			return False

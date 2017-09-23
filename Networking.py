@@ -60,34 +60,11 @@ def frombytes(pstuff):
         logging.info("Cpickle has DeSerialized: "+str(sz(pstuff))+ " MB")
         if nf:
             return stuff
-    #return the compressed version of the data
-def compress(self):
-    nf=True
-    try:
-        logging.info("Compressing Stuff")
-        self.stuff=gzip.compress(self.stuff)
-    except:
-        logging.exception("Compression Failed")
-        nf=False
-    finally:
-        if nf:
-            logging.info("Compressed Size is: "+str(self.sz())+" MB")
+
 #return the size of the data to send in MB unit and as type float
 def sz(stuff):
     logging.info("Calculating Size of Stuff")
     return sys.getsizeof(stuff)/1024**2
-    #return the uncompressed version of the data
-    def decompress(self):
-    	nf=True
-    	try:
-    		logging.info("Decompressing Stuff")
-    		self.stuff=gzip.compress(self.stuff)
-    	except:
-    		nf=False
-    		logging.exception("Compression Failed: ")
-    	finally:
-    		if nf:
-    			logging.info("Deompressed Size is: "+str(self.sz())+"MB")
 
 #write file to disk with a supplied name
 def todisk(stufft,name,dir):
@@ -404,7 +381,6 @@ class server():
             p=subprocess.run(['cksum',file],stdout=subprocess.PIPE)
             d[str(p.stdout.decode('utf-8').split()[0])+' '+str(p.stdout.decode('utf-8').split()[1])]=str(file)
         logging.info('Finding contents from CRC file.')
-        print()
         crc_bytes=frombytes(pstuff=fromdisk(filenm=str(d[self.crc_list]),path=self.split_directory))
         d={}
         for file in os.listdir():

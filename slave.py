@@ -1,11 +1,18 @@
 try:
-	import os,sys,socket,subprocess,zipfile,Networking,time
+	import os,sys,socket,subprocess,Networking,time,zipfile
 except Exception as e:
 	print(e)
 	sys.exit(1)
 finally:
     print("Imports Complete")
-
+#return the uncompressed version of the data
+def decompress(filenm,dir):
+    t=os.getcwd()
+    os.chdir(dir)
+    z=zipfile.ZipFile(filenm)
+    z.extractall()
+    z.close()
+    os.chdir(t)
 class client():
     def __init__(self,port,ip,secret,path):
         self.port=port
@@ -51,21 +58,16 @@ class client():
                             break
                 
                 serv.handshake(self.secret)
-                serv.start()
-                serv.end()
-    
+                self.sendmsg("ACK")
+                decompress(filenm=filenm,dir=os.getcwd())
+                print("Hello")
                     
             else:
                 self.sendmsg("ERROR")          
-def decompress(zippedfile):
-    subprocess.call("mkdir input".split())
-    zap=zipfile.ZipFile(zippedfile)
-    for files in zap.namelist():
-        zap.extract(files,os.getcwd()+"/input")
 if __name__=="__main__":
     port=9998
     ip='localhost'
     secret='shivam'
-    path='/home/shivam/Work/Projects/test/server'
+    path='/home/shivam/Work/Projects/test/server/'
     client(port,ip,secret,path).start()
     
