@@ -38,8 +38,8 @@ class client():
                 while True:
                     nf=False
                     try:
-                        ip,port=self.recvmsg().split()
-                        serv=Networking.server(host=ip,port=int(port),packetsize=65536,filenm='s.mp4',sever_directory=self.path)    
+                        ip,port,filenm=self.recvmsg().split()
+                        serv=Networking.server(host=ip,port=int(port),packetsize=65536,filenm=filenm,sever_directory=self.path)    
                     except e as Exception:
                         print(e)
                         nf=True

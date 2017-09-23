@@ -23,7 +23,7 @@ def fromdisk(path,filenm):
         infile= open(path,'rb')
         logging.info("Reading File")
         stuff=infile.read()
-    except e:
+    except e as Exception:
         nf=False
         logging.info("Cannot Open: ")
         logging.exception(e)

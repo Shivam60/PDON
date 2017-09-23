@@ -35,7 +35,7 @@ def uploader(filenm,dir):
 	os.chdir(dir+r'/node_files')
 	subprocess.run(("mkdir " + filenm+"_dir").split())
 	subprocess.run(("mv " +filenm+" "+os.getcwd()+r'/'+filenm+"_dir").split())
-	return filenm,str(os.getcwd()+r'/'+filenm+'_dir')
+	return filenm,str(os.getcwd()+r'/'+filenm+'_dir/')
 '''
 def scannodes(interface='wlps20'):
 	nf=True
@@ -105,7 +105,7 @@ class ThreadedServer(object):
 						while port in self.port_used:
 							port=random.randint(999,9999)
 						print("Communicating Slave %s with connection details"%address[0])					
-						client.sendall((str(address[0])+' '+str(port)).encode('utf-8'))
+						client.sendall((str(address[0])+' '+str(port)+' '+self.nodes[address[0]]).encode('utf-8'))
 						data = client.recv(size).decode('utf-8')
 						if data=='ACK':
 							print("Slave is ready to recieve data")
@@ -115,6 +115,7 @@ class ThreadedServer(object):
 					print("Error: "+data)
 				if data=='ACK':
 					filenm,dir=uploader(filenm=self.nodes[address[0]],dir=self.path)
+					print(filenm,dir)
 					c=Networking.client(host=address[0],port=port,filenm=filenm,secret=self.secret)
 					c.begin(dir)
 		except:
