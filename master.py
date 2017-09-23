@@ -30,16 +30,12 @@ def compress(lst,name):
 		file.write(lst,os.path.basename(lst),zipfile.ZIP_DEFLATED)
 	file.close()
 
-def uploader(host,port,filenm,secret,dir):
+def uploader(filenm,dir):
 	print("Preparing To upload")
 	os.chdir(dir+r'/node_files')
-	try:
-		subprocess.run(("mkdir " + filenm+"_dir").split())
-	except e as Exception:
-		print(e) 
+	subprocess.run(("mkdir " + filenm+"_dir").split())
 	subprocess.run(("mv " +filenm+" "+os.getcwd()+r'/'+filenm+"_dir").split())
-	#os.chdir(dir+'/'+filenm)
-	print(host,port,filenm,secret,os.getcwd()+r'/'+filenm+'_dir')
+	return filenm,str(os.getcwd()+r'/'+filenm+'_dir')
 '''
 def scannodes(interface='wlps20'):
 	nf=True
@@ -118,7 +114,9 @@ class ThreadedServer(object):
 				else:
 					print("Error: "+data)
 				if data=='ACK':
-					uploader(host=address[0],port=port,filenm=self.nodes[address[0]],secret=self.secret,dir=self.path)
+					filenm,dir=uploader(filenm=self.nodes[address[0]],dir=self.path)
+					c=Networking.client(host=address[0],port=port,filenm=filenm,secret=self.secret)
+					c.begin(dir)
 		except:
 			client.close()
 			return False

@@ -217,7 +217,7 @@ def join(path,nm):
         f.write(main)
         f.close()
 class client():
-    def __init__(self,host,port,filenm,packetsize=65536):
+    def __init__(self,host,port,filenm,secret,packetsize=65536,continuous=True):
         self.host=host
         self.port=port
         self.packetsize=packetsize
@@ -227,6 +227,8 @@ class client():
         self.crc=None
         self.crc_list=None
         self.filenm=filenm
+        self.continuous=True
+        self.secret=secret
         self.client_directory=None
         self.split_directory=None
     def begin(self,client_directory):
@@ -240,10 +242,12 @@ class client():
         self.crc=crc_n(filenm=self.filenm)
         self.crc_list=split(path=self.split_directory,filenm=self.filenm+'.bytes',chunk='3m')
         self.file_no= file_n(dir=self.split_directory)
+        if self.continuous==True:
+           self.handshake(self.secret)
     def end(self):
         set_directory(self.split_directory)
         for file in os.listdir():
-            clin1=client(host=self.host,port=self.port,filenm=str(file))
+            clin1=client(host=self.host,port=self.port,filenm=str(file),secret=self.secret)
             clin1.connect()
             clin1.send(filenm=file)
         logging.info('Splited Files Deleted')
@@ -307,7 +311,7 @@ class client():
             logging.info("Recieved: \nCRC: "+str(crc)+"\nFile Numbers: "+str(fno))
             logging.info("Actual: \nCRC: "+str(self.crc)+"\nFile Numbers: "+str(self.file_no))
 class server():
-    def __init__(self,host,port,packetsize,filenm,sever_directory):
+    def __init__(self,host,port,filenm,sever_directory,packetsize=65536,continuous=True):
         logging.info("Initalizing Attributes")
         logging.info("Checking if host and port are available: ")        
         self.host=host
@@ -320,6 +324,7 @@ class server():
         self.sever_directory=sever_directory
         self.split_directory=sever_directory+r'/s_split/'
         self.secret=None
+        self.continuous=True
         set_directory(path=self.sever_directory)
         makedir('s_split')
 
@@ -368,6 +373,8 @@ class server():
                 todisk(stufft=recvstufftemp,name=str(i)+'.bytes',dir=os.getcwd()+str(r'/s_split'))
         logging.info("Average Speed of data transfer is "+str((sys.getsizeof(self.recvstuff)/1024**2)/(time.time()-stt))+" MBPS")
         logging.info("Total Data Recieved: "+str((sys.getsizeof(self.recvstuff)/1024**2)))
+        if self.continuous==True:
+           self.end()
     def handshake(self,secret):
         self.secret=secret
         logging.info("Connecting...")
@@ -387,6 +394,8 @@ class server():
         logging.info("Sending handshake back") 
         conn.send((self.crc+'/\\'+str(self.file_no)+'/\\'+self.crc_list+'/\\'+passw).encode('utf-8'))
         logging.info("Handshake back sent")
+        if self.continuous==True:
+           self.start()
     def end(self):
         set_directory(path=self.split_directory)
         d={}
