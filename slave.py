@@ -13,6 +13,14 @@ def decompress(filenm,dir):
     z.extractall()
     z.close()
     os.chdir(t)
+def compress(lst,name):
+	file = zipfile.ZipFile(name, "w")
+	if type(lst)==list:
+		for i in lst:
+			file.write(i,os.path.basename(i),zipfile.ZIP_DEFLATED)
+	else:
+		file.write(lst,os.path.basename(lst),zipfile.ZIP_DEFLATED)
+	file.close()    
 class client():
     def __init__(self,port,ip,secret,path):
         self.port=port
@@ -60,8 +68,13 @@ class client():
                 subprocess.run(("rm "+filenm).split())
                 ls=os.listdir()
                 ls.remove('code.py')
+                print(os.getcwd())
                 for i in ls:
-                    subprocess.call("python code.py"+ str(i))
+                    subprocess.run(("python code.py "+ str(i)).split())
+                    subprocess.run(("rm "+str(i)).split())
+                subprocess.run(("rm code.py").split())
+                ls=os.listdir()
+                compress(ls,"output")
                 os.chdir(t)
              
             else:

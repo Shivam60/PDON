@@ -67,8 +67,9 @@ def frombytes(pstuff):
     nf=True 
     try:
         logging.info("Serializing stuff")
+        #stuff=decrypt(stuff)
         stuff=pickle.loads(pstuff)
-	#stuff=decrypt(stuff)        
+     
     except pickle.UnpicklingError as e:
         nf=False
         logging.info("Error in Deserialisation of the Object. Object could not be converted to bytes.\nMake Sure the Datatype supports serialization.\n")
