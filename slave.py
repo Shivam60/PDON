@@ -57,8 +57,13 @@ class client():
                     serv.handshake(self.secret)
                 self.sendmsg("ACK")
                 decompress(filenm=filenm,dir=os.getcwd())
+                subprocess.run(("rm "+filenm).split())
+                ls=os.listdir()
+                ls.remove('code.py')
+                for i in ls:
+                    subprocess.call("python code.py"+ str(i))
                 os.chdir(t)
-                print("Hello")                    
+             
             else:
                 self.sendmsg("ERROR")          
 if __name__=="__main__":
