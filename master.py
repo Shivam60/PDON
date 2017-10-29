@@ -11,13 +11,18 @@ def processfolder(code='code.py',path=os.getcwd(),nodes=2):
 	d=os.listdir(path)	
 	os.chdir(path)
 	subprocess.run("mkdir node_files".split())
+	os.chdir("node_files")
+	subprocess.run(("mkdir recieve").split())
+	subprocess.run(("mkdir to_send").split())
+	subprocess.run(("mkdir sent").split())
+	os.chdir(path)
 	d.remove(code)
 	lst=[d[i::nodes] for i in range(nodes)]
 	[i.append(code) for i in lst]	
 	print("Dividing all data into ' %d ' compress files. "%len(lst))
 	for i in range(0,len(lst)):
 		compress(lst[i],name="node_"+str(i+1))
-		subprocess.run(("mv node_"+str(i+1)+" "+path+'/node_files/').split())
+		subprocess.run(("mv node_"+str(i+1)+" "+path+'/node_files/to_send').split())
 		print("Compressed Data for node_"+str(i+1)+" written")	
 	os.chdir(t)
 #compress a particular file or a list of files
@@ -36,24 +41,7 @@ def uploader(filenm,dir):
 	subprocess.run(("mkdir " + filenm+"_dir").split())
 	subprocess.run(("mv " +filenm+" "+os.getcwd()+r'/'+filenm+"_dir").split())
 	return filenm,str(os.getcwd()+r'/'+filenm+'_dir/')
-'''
-def scannodes(interface='wlps20'):
-	nf=True
-	try:
-		ip=os.popen('ip a | grep "wlp2s0" | grep "inet" ').read().split()[1]
-		print("Local IP %s address on %s " %(ip,interface))
-		answered,unanswered=srp(Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(pdst=ip), timeout=2, verbose=0)
-	except Exception as e:
-		nf=False
-		print(e)
-	finally:
-		if nf:
-			d={}
-			for i in range(0,len(answered)):
-					d[str(answered[i][1].psrc)]=str(answered[i][1].hwsrc)
-			return d
-		return -1
-'''
+
 class ThreadedServer(object):
 	def __init__(self, host, port,nodes,secret,path):
 		self.host = host
@@ -61,13 +49,9 @@ class ThreadedServer(object):
 		self.path = path
 		self.limit = nodes
 		self.nodes = {}
+		self.node_limit=0
 		self.port_used=[]
 		self.secret = secret
-		self.commands = {
-			1:"Ready".encode('utf-8'),
-			2:"Port".encode('utf-8'),
-			3:"IP".encode('utf-8')
-		}
 		try:
 			self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -79,12 +63,12 @@ class ThreadedServer(object):
 			print("Master is now running.")	
 	def listen(self):
 		self.sock.listen(self.limit)
-		#threading.Thread(target = processfolder,args = ('code.py',self.path,self.limit)).start()
-		while len(self.nodes) != self.limit:
+		processfolder('code.py',self.path,self.limit)
+		while self.node_limit != self.limit:
 			client, address = self.sock.accept()
 			threading.Thread(target = self.listenToClient,args = (client,address)).start()
 			self.nodes[address[0]]='node_'+str(len(self.nodes)+1)		
-
+			self.node_limit+=1
 	def listenToClient(self, client, address):
 		size = 102400
 		try:
