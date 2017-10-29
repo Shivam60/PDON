@@ -34,7 +34,6 @@ def compress(lst,name):
 	else:
 		file.write(lst,os.path.basename(lst),zipfile.ZIP_DEFLATED)
 	file.close()
-
 def uploader(filenm,dir):
 	print("Preparing To upload")
 	os.chdir(dir+r'/node_files')
@@ -52,6 +51,7 @@ class ThreadedServer(object):
 		self.node_limit=0
 		self.port_used=[]
 		self.secret = secret
+		self.busy=False
 		try:
 			self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -63,7 +63,9 @@ class ThreadedServer(object):
 			print("Master is now running.")	
 	def listen(self):
 		self.sock.listen(self.limit)
+		print("Processing the folder")
 		processfolder('code.py',self.path,self.limit)
+		print("Processing of the folder completed")
 		while self.node_limit != self.limit:
 			client, address = self.sock.accept()
 			threading.Thread(target = self.listenToClient,args = (client,address)).start()
@@ -77,9 +79,13 @@ class ThreadedServer(object):
 				print("Slave %s Authenitcated "%(str(address[0])))
 				client.sendall("Authenitcated".encode('utf-8'))
 				i=1
-				while not os.path.exists(self.path+'/node_files/'+self.nodes[address[0]]):
+				while not os.path.exists(self.path+'/node_files/to_send/'+self.nodes[address[0]]):
 					pass
-				print("Initating Slave %s Data Transfer" %(str(address[0])))
+				while self.busy==True:
+					pass
+				self.busy=True
+				print("Initating Slave %s Data Transfer" %(str(address[0])))				
+				subprocess.run(("mv "+self.path+'/node_files/to_send/'+self.nodes[address[0]]+" "+self.path+'/node_files/').split())
 				client.sendall("READY".encode('utf-8'))
 				data = client.recv(size).decode('utf-8')
 				if data=='ACK':
@@ -98,6 +104,9 @@ class ThreadedServer(object):
 					filenm,dir=uploader(filenm=self.nodes[address[0]],dir=self.path)
 					c=Networking.client(host=address[0],port=port,filenm=filenm,secret=self.secret)
 					c.begin(dir)
+					self.busy=False
+					subprocess.run(("mv "+self.path+'/node_files/'+self.nodes[address[0]]+"_dir/"+self.nodes[address[0]]+" "+self.path+'/node_files/sent/').split())
+					subprocess.run(("rm -r "+self.path+'/node_files/'+self.nodes[address[0]]+"_dir/").split())
 					data = client.recv(size).decode('utf-8')
 					if data=='ACK':
 						print("Slave node %s has recived data sucessfully. "%address[0])

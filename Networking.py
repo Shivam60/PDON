@@ -1,5 +1,6 @@
 try:
     import socket,sys,time,os,logging,subprocess,pickle
+    from Crypto.Cipher import DES
 except ImportError as e:
    print("Importing Failed, Make sure the Requirements are met. Program exiting:\n"+e)
    os._exit(0)
@@ -7,13 +8,15 @@ finally:
     try:
         logging.stream=sys.stdout
         logging.basicConfig(filemode='a',filename='log.log',level=logging.DEBUG,format='%(module)s %(levelname)s %(threadName)s %(asctime)s %(message)s')
-        logging.getLogger().addHandler(logging.StreamHandler())
+        #logging.getLogger().addHandler(logging.StreamHandler())
     except ValueError as e:
         logging.info("Cannot Create log files: Program Exiting.\nError: ")
         Logger.exception(e)
         os._exit(0)
     finally:
         logging.info("Loggers set, imports completed")
+def createcipher():
+    time.delay(5)
 #open the file to send.
 def fromdisk(path,filenm): 
     nf=True
@@ -33,11 +36,24 @@ def fromdisk(path,filenm):
             infile.close()
             logging.info("Closing File")
             return stuff
+def createcipher():
+    time.delay(5)
+def encrypt(stuff,secret):
+    createcipher()
+    obj=DES.new(secret, DES.ECB)
+    pstuff=obj.encrypt('asdasdas')
+    return stuff
+def decrypt(stuff,secret):
+    createcipher()
+    obj=DES.new(secret, DES.ECB)
+    pstuff=obj.decrypt('asdasdas')
+    return stuff
 #returns serialized item passed in as a parameter
 def tobytes(stuff):
     nf =True
     try:
         pstuff=pickle.dumps(stuff)
+        #pstuff=encrypt(pstuff)
     except pickle.PicklingError as e:
         nf=False
         logging.info("Error in Serialisation of the Object. Object could not be converted to byetes. Make Sure the Datatype supports serialization.")
@@ -52,6 +68,7 @@ def frombytes(pstuff):
     try:
         logging.info("Serializing stuff")
         stuff=pickle.loads(pstuff)
+	#stuff=decrypt(stuff)        
     except pickle.UnpicklingError as e:
         nf=False
         logging.info("Error in Deserialisation of the Object. Object could not be converted to bytes.\nMake Sure the Datatype supports serialization.\n")

@@ -42,32 +42,29 @@ class client():
             if self.recvmsg()=="READY":
                 self.sendmsg("ACK")
                 print("Setting Recieving Server. ")
-                while True:
-                    nf=False
-                    try:
-                        ip,port,filenm=self.recvmsg().split()
-                        serv=Networking.server(host=ip,port=int(port),packetsize=65536,filenm=filenm,sever_directory=self.path)    
-                    except e as Exception:
-                        print(e)
-                        nf=True
-                        self.sendmsg("ERROR")
-                    finally:
-                        if not nf:
-                            self.sendmsg("ACK")
-                            print("Server Set, Waiting For Data")
-                            break
-                
-                serv.handshake(self.secret)
+                try:
+                    ip,port,filenm=self.recvmsg().split()
+                    t=os.getcwd()
+                    os.chdir(self.path)
+                    serv=Networking.server(host=ip,port=int(port),packetsize=65536,filenm=filenm,sever_directory=self.path)    
+                except e as Exception:
+                    print(e)
+                    nf=True
+                    self.sendmsg("ERROR")
+                finally:
+                    self.sendmsg("ACK")
+                    print("Server Set, Waiting For Data")
+                    serv.handshake(self.secret)
                 self.sendmsg("ACK")
                 decompress(filenm=filenm,dir=os.getcwd())
-                print("Hello")
-                    
+                os.chdir(t)
+                print("Hello")                    
             else:
                 self.sendmsg("ERROR")          
 if __name__=="__main__":
     port=9998
     ip='localhost'
     secret='shivam'
-    path='/home/shivam/Work/Projects/test/server/'
+    path='/home/shivam/Work/Projects/test/slave/'
     client(port,ip,secret,path).start()
     
