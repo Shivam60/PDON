@@ -75,8 +75,12 @@ class client():
                 subprocess.run(("rm code.py").split())
                 ls=os.listdir()
                 compress(ls,"output")
+                c=Networking.client(host=ip,port=int(port)+1,filenm='output',secret=self.secret)
+                c.begin(os.getcwd()+'/')
+                subprocess.run("rm *".split())
                 os.chdir(t)
-             
+                if self.recvmsg()=="ACK":
+                    print("Output recieved")
             else:
                 self.sendmsg("ERROR")          
 if __name__=="__main__":

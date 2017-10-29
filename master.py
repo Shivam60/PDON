@@ -110,7 +110,11 @@ class ThreadedServer(object):
 					data = client.recv(size).decode('utf-8')
 					if data=='ACK':
 						print("Slave node %s has recived data sucessfully. "%address[0])
-
+						print("Waiting for slave %s to send output back"%address[0])
+						serv=Networking.server(host=ip,port=int(port)+1,packetsize=65536,filenm=filenm,sever_directory=self.path+'/node_files/recieve/')    
+						serv.handshake(self.secret)
+						print('Output Recieved.')
+						client.sendall("ACK".encode('utf-8'))
 				else:
 					print("Error: "+data)
 
