@@ -8,7 +8,7 @@ finally:
     try:
         logging.stream=sys.stdout
         logging.basicConfig(filemode='a',filename='log.log',level=logging.DEBUG,format='%(module)s %(levelname)s %(threadName)s %(asctime)s %(message)s')
-        #logging.getLogger().addHandler(logging.StreamHandler())
+        logging.getLogger().addHandler(logging.StreamHandler())
     except ValueError as e:
         logging.info("Cannot Create log files: Program Exiting.\nError: ")
         Logger.exception(e)

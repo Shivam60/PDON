@@ -111,19 +111,26 @@ class ThreadedServer(object):
 					if data=='ACK':
 						print("Slave node %s has recived data sucessfully. "%address[0])
 						print("Waiting for slave %s to send output back"%address[0])
-						serv=Networking.server(host=ip,port=int(port)+1,packetsize=65536,filenm=filenm,sever_directory=self.path+'/node_files/recieve/')    
+						try:
+						  print("mkdir "+self.path+'node_files/recieve/'+filenm)
+						  subprocess.run(("mkdir "+self.path+'node_files/recieve/'+filenm).split())
+						except:
+						  input("error")
+						serv=Networking.server(host=ip,port=int(port)+1,packetsize=65536,filenm=filenm,sever_directory=self.path+'node_files/recieve/'+filenm+'/')    
 						serv.handshake(self.secret)
 						print('Output Recieved.')
-						client.sendall("ACK".encode('utf-8'))
+						client.sendall("ACK".encode('utf-8'))					
 				else:
 					print("Error: "+data)
-
+				print("Finishing the output. ")
+				for i in os.listdir(self.path+'node_files/recieve/'+filenm+'/'):
+					subprocess.run(('rename "s/'+str(i)+'/'+str(i)+'.mp3/g" *').split())
 		except:
 			client.close()
 			return False
 if __name__ == "__main__":
-	ip='localhost'
-	port=9998
-	d=2
+	ip='192.168.43.72'
+	port=9928
+	d=1
 	secret='shivam'	
-	ThreadedServer('',port,d,secret,path='/home/shivam/Work/Projects/test/master').listen()
+	ThreadedServer('',port,d,secret,path='/home/dharmendra/Desktop/master/').listen()

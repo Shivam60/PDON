@@ -75,17 +75,26 @@ class client():
                 subprocess.run(("rm code.py").split())
                 ls=os.listdir()
                 compress(ls,"output")
-                c=Networking.client(host=ip,port=int(port)+1,filenm='output',secret=self.secret)
+                input("enter")
+                c=Networking.client(host=self.host,port=int(port)+1,filenm='output',secret=self.secret)
                 c.begin(os.getcwd()+'/')
-                subprocess.run("rm *".split())
+                for i in os.listdir():
+                    try:
+                        subprocess.call("rm "+str(i))
+                    except:
+                        try:
+                            subprocess.call("rm -r"+str(i))
+                        except:
+                            pass
+                
                 os.chdir(t)
                 if self.recvmsg()=="ACK":
-                    print("Output recieved")
+                    print("Output recieved. Slave Shutting Down")
             else:
                 self.sendmsg("ERROR")          
 if __name__=="__main__":
-    port=9998
-    ip='localhost'
+    port=9928
+    ip='192.168.43.72'
     secret='shivam'
     path='/home/shivam/Work/Projects/test/slave/'
     client(port,ip,secret,path).start()
