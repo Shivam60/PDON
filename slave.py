@@ -85,17 +85,18 @@ class client():
                         try:
                             subprocess.call("rm -r"+str(i))
                         except:
-                            pass
-                
+                            pass                
                 os.chdir(t)
                 if self.recvmsg()=="ACK":
                     print("Output recieved. Slave Shutting Down")
             else:
                 self.sendmsg("ERROR")          
 if __name__=="__main__":
-    port=9928
-    ip='192.168.43.72'
+    port=9927
+    ip='10.42.0.180'
     secret='shivam'
     path='/home/shivam/Work/Projects/test/slave/'
     client(port,ip,secret,path).start()
-    
+    os.chdir(path)    
+    print(os.listdir()) 
+
